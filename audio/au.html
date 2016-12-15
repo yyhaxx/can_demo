@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        #abc {
+            background: #efefef;
+            /* width: 1000px; */
+            height: 300px;
+        }
+
+        span {
+            width: 20px;
+            display: inline-block;
+            border-right: 1px solid #333;
+        }
+        #upbox{
+            opacity: 0;
+            /* width: 200%; */
+            /* height: 200%; */
+            position: absolute;
+            top: 0
+            left: 0;
+        }
+        .chooseBtn{
+            width: 100px;
+            height: 40px;
+            cursor: pointer;
+            background: #fff;
+            text-align: center;
+            color: #333;
+            border-radius: 4px;
+            line-height: 40px;
+            font-size: 20px;
+            box-shadow: 2px 2px 8px #0af;
+            display: block;
+            margin: 0 auto;
+        }
+        .box{
+            position: relative;
+            z-index: 10;
+        }
+        canvas{
+            /* outline: 1px solid #f90; */
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            background: #333;
+            /* cursor-event: none; */
+        }
+        h1{
+            text-align: center;
+            color: #0af;
+            font-size: 40px;
+            line-height: 50px;
+            padding-top: 50px;
+            text-shadow: 2px 2px 10px #0cf;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <canvas width="300" height="200" id="can"></canvas>
+        <div class="box">
+
+            <h1>选择一首你最喜欢的本地音乐文件吧</h1>
+            <label href="javascript:;" class="chooseBtn">
+            选择
+            <input type="file" id="upbox"></label>
+        </div>
+    </div>
+    <script>
+        AudioContext = window.AudioContext || window.webkitAudioContext;
+        var ctx = can.getContext('2d');
+        var audioContext = new window.AudioContext();
+        var audioBufferSouceNode;
+        var perLen = 1;
+
+        can.width = window.innerWidth;
+        can.height = window.innerHeight;
+        upbox.onchange = function(e) {
+            // audioContext.stop();
+            console.log(e, upbox);
+            doArrayBuffer(upbox.files[0]);
+
+        };
+
+        function doArrayBuffer(aBuffer) {
+            var fr = new FileReader();
+
+            fr.onload = function() {
+                console.log(fr);
+                audioBufferSouceNode && audioBufferSouceNode.stop();
+                audioContext.decodeAudioData(fr.result, function(buffer) {
+                    console.log(buffer);
+
+                    audioBufferSouceNode = audioContext.createBufferSource();
+                    var analyser = audioContext.createAnalyser();
+                    // audioBufferSouceNode.stop();
+                    //将source与分析器连接
+                    audioBufferSouceNode.loop = true;
+                    audioBufferSouceNode.connect(analyser);
+                    //将分析器与destination连接，这样才能形成到达扬声器的通路
+                    // analyser.fftSize = 1024;
+                    analyser.connect(audioContext.destination);
+                    //将上一步解码得到的buffer数据赋值给source
+                    audioBufferSouceNode.buffer = buffer;
+                    //播放
+                    audioBufferSouceNode.start(0);
+
+                    console.log(analyser);
+
+                    window.aua = new Uint8Array(analyser.frequencyBinCount);
+                    analyser.getByteFrequencyData(window.aua);
+                    canDraw(analyser);
+                    console.log(window.aua);
+                })
+            }
+            fr.readAsArrayBuffer(aBuffer);
+        }
+
+
+        function canDraw(analyser) {
+
+            ctx.fillStyle = 'rgba(100,200,200,.8)';
+            clearInterval(window.interval_can);
+            window.interval_can = setInterval(function() {
+                var aua = new Uint8Array(analyser.frequencyBinCount);
+                analyser.getByteFrequencyData(aua);
+                var showData = getDelData(aua);
+                drawShow(showData);
+            }, 1000 / 60);
+
+        }
+
+        function drawShow(data) {
+            ctx.clearRect(0,0,can.width,can.height);
+            ctx.fillStyle = 'rgba(0,255,255,.9)';
+
+            for (var i = 0, l = data.length; i < l; i++) {
+
+
+                // var baseColor = [100, 100, 100, .5];
+                // var mainColor = Math.floor(Math.random() * 3);
+                // baseColor[mainColor] = data[i];
+                // ctx.fillStyle = 'rgba(' + baseColor.join(',') + ')';
+                // ctx.fillStyle = 'rgba(0,255,255,.9)';
+                // console.log(i);
+                ctx.beginPath();
+                ctx.fillRect(2 * (i+1), window.innerHeight/2 - data[i]/2,  2, data[i] + 1);
+                // ctx.rect(perLen * 2 * (i+1), 400, perLen * 2, data[i]);
+                // ctx.fill();
+                ctx.closePath();
+
+            }
+        }
+
+        function getDelData(data) {
+            var newData = [];
+            for (var i = 0, l = data.length; i < l; i += perLen) {
+                newData.push(
+                    (function(temp) {
+                        var tData = 0;
+                        for (var j=0;j<perLen;j++) {
+                            tData+=temp[j];
+                        }
+                        return tData/perLen;
+                    })(data.slice(i, i+perLen))
+                );
+            }
+            return newData;
+        }
+
+    </script>
+</body>
+
+</html>

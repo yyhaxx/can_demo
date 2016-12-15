@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+canvas{
+    border: 1px solid #333;
+}
+    </style>
+</head>
+<body>
+    <canvas id="can" width=1000 height=600></canvas>
+<script>
+    var ctx = can.getContext('2d');
+
+    var df = {
+        fillStyle: '#f60',
+        font: 'microsoft yahei 14px',
+        strokeStyle: '#333',
+        lineWidth: '10px',
+    }
+
+    // for(var i=0; i< 360; i+= 5){
+    //     drawRotate(i, function(ctx) {
+    //         ctx.strokeStyle = 'rgba(255,0,'+ i%200 +', 1)'
+    //         ctx.strokeRect(150,50, 100, 100);
+    //     });
+    // }
+
+    // drawRotate(0, function(ctx) {
+    //     ctx.strokeRect(100,0, 50, 50);
+    // });
+    // drawRotate(30, function(ctx) {
+    //     ctx.strokeRect(100,0, 50, 50);
+    // });
+    // drawRotate(60, function(ctx) {
+    //     ctx.strokeRect(100,0, 50, 50);
+    // });
+    // drawRotate(90, function(ctx) {
+    //     ctx.strokeRect(100,0, 50, 50);
+    // });
+    var deg = 0;
+    var cha = 0;
+    ctx.strokeStyle = 'rgba(0,255,255,1)';
+    function drawFn() {
+        deg= (deg+1)%120;
+        // cha = (cha+1)%500;
+        ctx.save();
+        ctx.fillStyle = 'rgba(255,255,255,.1)';
+        // ctx.fillRect(0,0,can.width,can.height);
+        ctx.restore();
+        drawRotate(deg, function() {
+            // ctx.strokeRect(100,0, 50, 50);
+            ctx.beginPath();
+            ctx.arc(100, 50, 100, 0, 2*Math.PI);
+            ctx.stroke();
+        })
+    }
+
+    window.qaf = requestAnimationFrame(function(){
+        loop(drawFn);
+    });
+
+    function loop() {
+        drawFn();
+        // loop
+        requestAnimationFrame(loop);
+    }
+    function drawRotate(deg, fn) {
+        ctx.save();
+        ctx.translate(can.width/2, can.height/2);
+        ctx.rotate(deg);
+        fn && fn(ctx);
+        ctx.restore();
+    }
+</script>
+</body>
+</html>

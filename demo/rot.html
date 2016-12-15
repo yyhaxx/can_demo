@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+canvas{
+    border: 1px solid #333;
+}
+    </style>
+</head>
+<body>
+    <canvas id="can" width=1000 height=600></canvas>
+<script>
+    var ctx = can.getContext('2d');
+
+    var iDeg = 0;
+    ctx.strokeStyle = 'rgba(0,255,255,1)';
+    function drawFn(op) {
+        ctx.beginPath();
+        ctx.moveTo(op.x, op.y-op.r);
+        ctx.arc(op.x, op.y-op.r, op.r, -90/180 * Math.PI, 90/180 * Math.PI);
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    function drawFc() {
+        var center = {
+            x: 0,
+            y: 0,
+            r: 50
+        };
+        ctx.fillStyle = '#f0f';
+        drawRotate(Object.assign({deg: 0}, center), function() {
+            drawFn(center);
+        });
+        ctx.fillStyle = '#f00';
+        drawRotate(Object.assign({deg: 90/180 * Math.PI}, center), function() {
+            drawFn(center);
+        });
+        ctx.fillStyle = '#ff0';
+        drawRotate(Object.assign({deg: 180/180 * Math.PI}, center), function() {
+            drawFn(center);
+        });
+        ctx.fillStyle = '#0ff';
+        drawRotate(Object.assign({deg: 270/180 * Math.PI}, center), function() {
+            drawFn(center);
+        });
+    }
+
+    function roFc() {
+        ctx.fillStyle = 'rgba(255,255,255,1)';
+        ctx.fillRect(0, 0, can.width, can.height);
+        drawRotate({
+            x: 100, y: 100, deg: iDeg/180 * Math.PI
+        }, function() {
+            drawFc();
+        });
+
+        drawRotate({
+            x: 300, y: 300, deg: iDeg/180 * Math.PI
+        }, function() {
+            drawFc();
+        });
+
+        drawRotate({
+            x: 500, y: 500, deg: iDeg/180 * Math.PI
+        }, function() {
+            drawFc();
+        });
+
+        iDeg = (iDeg+10)%360;
+    }
+    var last = Date.now();
+    var fps = 0;
+    window.qaf = requestAnimationFrame(function(){
+        loop(roFc);
+    });
+
+    function loop() {
+        roFc();
+        var now = Date.now();
+        fps++;
+        if (now -last >= 1000) {
+            last = Date.now();
+            document.title = fps;
+            fps = 0;
+        }
+        // loop
+        requestAnimationFrame(loop);
+        // document.title = fps;
+    }
+    function drawRotate(parms, fn) {
+        ctx.save();
+        ctx.translate(parms.x, parms.y);
+        ctx.rotate(parms.deg);
+        fn && fn();
+        ctx.restore();
+    }
+</script>
+</body>
+</html>

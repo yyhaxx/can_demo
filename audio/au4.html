@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        .box{
+            position: relative;
+            z-index: 10;
+        }
+        canvas{
+            /* outline: 1px solid #f90; */
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            background: #333;
+            /* cursor-event: none; */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <canvas width="1024" height="600" id="can"></canvas>
+        <div class="box">
+            <audio id="audio" style="position: fixed; z-index: 11;" src="./2.mp3" preload="preload" controls="controls" autoplay="autoplay"></audio>
+        </div>
+    </div>
+    <script>
+        AudioContext = window.AudioContext || window.webkitAudioContext;
+        var ctx = can.getContext('2d');
+        var audioContext = new window.AudioContext();
+        var analyser = audioContext.createAnalyser();
+        var analyser1 = audioContext.createAnalyser();
+
+
+        var audioBufferSouceNode;
+        var perLen = 1;
+        var waveWidth = 1;
+        can.width = window.innerWidth;
+        can.height = window.innerHeight;
+        ctx.fillStyle = 'rgba(0,255,0,1)';
+        var arcR = Math.ceil(1024/(2*Math.PI));
+        // ctx.translate(100, 0);
+        function doArrayBuffer() {
+            audio.loop = "loop";
+            audioBufferSouceNode = audioContext.createMediaElementSource(audio);
+
+            var splitter = audioContext.createChannelSplitter(2);
+
+            audioBufferSouceNode.connect(splitter);
+            var merger = audioContext.createChannelMerger(2);
+            // console.log(audioContext, audioBufferSouceNode);
+            // audioBufferSouceNode.connect(analyser);
+            splitter.connect(merger, 0 ,1);
+            merger.connect(analyser);
+            splitter.connect(merger, 1, 0);
+            merger.connect(analyser1);
+
+            console.log(analyser);
+            console.log(analyser1);
+            merger.connect(analyser);
+            // analyser.connect(splitter);
+
+            splitter.connect(audioContext.destination)
+            console.log(analyser);
+            audio.onplay = function() {
+                var aua = new Uint8Array(analyser.frequencyBinCount);
+                waveWidth = Math.floor( can.width / aua.length);
+                if (aua.length > 1024) {
+                    analyser.fftsize = aua.length;
+                }
+                window.raf = requestAnimationFrame(loop);
+            }
+            audio.onpause = function() {
+                window.cancelAnimationFrame(window.raf);
+            }
+        }
+
+        function loop() {
+            var aua = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(aua);
+
+            var aua1 = new Uint8Array(analyser1.frequencyBinCount);
+            analyser1.getByteFrequencyData(aua1);
+            // analyser.getByteTimeDomainData(aua);
+            var showData = getDelData(aua);
+            var showData1 = getDelData(aua1);
+            ctx.clearRect(0,0,can.width,can.height);
+            drawShow(showData, 0);
+            drawShow(showData1, 1);
+
+            window.raf = requestAnimationFrame(loop);
+        }
+
+        function drawArcCenter() {
+
+            ctx.save();
+            ctx.translate(can.width/2, can.height/2);
+            ctx.beginPath();
+            ctx.arc(0,0,arcR,0,2*Math.PI);
+            ctx.closePath();
+            ctx.linewidth = '5px';
+            ctx.strokeStyle = '#09f';
+            ctx.stroke();
+            ctx.restore();
+        }
+
+
+        function drawRectOfArc(deg, w, h) {
+            ctx.save();
+            ctx.rotate(deg);
+            ctx.beginPath();
+            ctx.fillRect(arcR, 0, h, w);
+            ctx.closePath();
+            ctx.restore();
+        }
+
+        function drawShow(data, index) {
+            var pp = 2;
+            if (index == 0) {
+                ctx.fillStyle = 'rgba(0,255,0,.7)';
+            } else {
+                pp = 1
+                ctx.fillStyle = 'rgba(255,0,0,.7)';
+            }
+
+            // drawArcCenter();
+            ctx.save();
+            ctx.translate(can.width/2, can.height/2);
+            for (var i = 0, l = data.length; i < l; i++) {
+                var ran = Math.random() * 2 - 0.5;
+                // ctx.fillRect(waveWidth * (i+1), window.innerHeight/2 - data[i]*2/2,  waveWidth, 2*data[i] + 1);
+                drawRectOfArc(((360)/data.length * i - 90)/180 * Math.PI, waveWidth,  -pp * (data[i])*2/5 + 1);
+            }
+            ctx.restore();
+        }
+
+        function getDelData(data) {
+            var newData = [];
+            for (var i = 0, l = data.length; i < l; i += perLen) {
+                newData.push(
+                    (function(temp) {
+                        var tData = 0;
+                        for (var j=0;j<perLen;j++) {
+                            tData+=temp[j];
+                        }
+                        return tData/perLen;
+                    })(data.slice(i, i+perLen))
+                );
+            }
+            return newData;
+        }
+
+        doArrayBuffer();
+    </script>
+</body>
+
+</html>

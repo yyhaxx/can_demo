@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+    canvas{border: 2px solid #333;}
+    /* img{width:100px; height: 100px;} */
+    </style>
+</head>
+<body>
+    <img src="../3.png" id="img" alt="">
+<canvas id="can" width="800" height="800"></canvas>
+<script>
+    var _$ = function(str) {
+        var rStr = str;
+        if (/^#\S+/.test(str)) {
+            rStr = str.slice(1);
+            return [document.getElementById(rStr)];
+        } else if (/^.\S+/.test(str)) {
+            rStr = str.slice(1);
+            return document.getElementsByClassName(rStr) || [];
+        } else {
+            return document.getElementsByTagName(rStr) || [];
+        }
+    };
+    var can = _$('#can')[0];
+    var ctx = can.getContext('2d');
+    var oImg = _$('#img')[0];
+
+    var box = {
+        x: 100,
+        y: 100,
+        w: 50,
+        h: 50
+    }
+
+    oImg.onload = canInit;
+
+    function mask() {
+        ctx.beginPath();
+        ctx.fillStyle = 'rgba(255,255,255,1)';
+        ctx.fillRect(0,0,can.width,can.height);
+        ctx.closePath();
+    }
+
+    function drawRect(deg, speed){
+        mask();
+        canRotate(Math.PI * deg / 180 , function(arr) {
+            ctx.beginPath();
+            ctx.fillStyle = 'rgba(200,0,100,1)';
+            ctx.fillRect(arr.x, arr.y, 50, 50);
+            ctx.closePath();
+        }, {
+            x: (box.x += speed.x)%800,
+            y: (box.y += speed.y)%800,
+            w: 50,
+            h: 50
+        });
+    }
+
+    function canInit() {
+        var index = 0;
+        var ceng = 10;
+        var timmer = setInterval(function() {
+            drawRect(index, {x: 2, y: 2});
+            if (index%360 == 0) {
+                // ceng *= -1;
+            }
+            index += ceng;
+        }, 1000/60);
+    }
+
+    function stop() {
+        clearInterval(timmer);
+    }
+
+    function canRotate(deg, fn, obj) {
+        ctx.translate(obj.x , obj.y);
+        ctx.rotate(deg);
+        fn && fn({
+            x: -obj.w/2,
+            y: -obj.h/2
+        });
+        ctx.rotate(-deg);
+        ctx.translate(-obj.x , -obj.y);
+    }
+</script>
+</body>
+
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+    *{padding: 0; margin:0;}
+        span {
+            width: 20px;
+            display: inline-block;
+            border-right: 1px solid #333;
+        }
+        .box{
+            position: relative;
+            z-index: 10;
+        }
+        canvas{
+            /* outline: 1px solid #f90; */
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            background: #333;
+            /* cursor-event: none; */
+        }
+        ul, li{list-style: none;}
+        #micList{
+            background: #efefef;
+            width: 200px;
+            margin: 0 auto;
+        }
+        #micList li{
+            padding: 5px;
+            text-align: center;
+            border: 1px solid #999;
+        }
+        #micList a{
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <canvas width="1024" height="600" id="can"></canvas>
+        <div class="box">
+            <audio id="audio" style="position: fixed; z-index: 11;" src="./24k.mp3" preload="preload" controls="controls" autoplay="autoplay"></audio>
+            <ul id="micList">
+                <li class="item"><a href="javascript:;" data-mic="./1.mp3">1.MP3</a></li>
+                <li class="item"><a href="javascript:;" data-mic="./2.mp3">2.MP3</a></li>
+            </ul>
+        </div>
+    </div>
+    <script>
+        AudioContext = window.AudioContext || window.webkitAudioContext;
+        var ctx = can.getContext('2d');
+        var audioContext = new window.AudioContext();
+        var analyser = audioContext.createAnalyser();
+        var audioBufferSouceNode;
+        var perLen = 1;
+        var waveWidth = 1;
+        // can.width = window.innerWidth;
+        can.height = window.innerHeight;
+        ctx.fillStyle = 'rgba(0,255,0,1)';
+
+
+        var aItem = micList.querySelectorAll('.item a');
+
+        for (var i=0, l=aItem.length; i<l; i++) {
+            aItem[i].onclick = function() {
+                audio.src = this.getAttribute('data-mic');
+                audio.play();
+            }
+        }
+
+        // ctx.translate(100, 0);
+        function doArrayBuffer() {
+            audio.loop = "loop";
+            audioBufferSouceNode = audioContext.createMediaElementSource(audio);
+            audioBufferSouceNode.connect(analyser);
+            analyser.connect(audioContext.destination);
+            audio.onplay = function() {
+                var aua = new Uint8Array(analyser.frequencyBinCount);
+                waveWidth = Math.floor( can.width / aua.length);
+                if (aua.length > 1024) {
+                    analyser.fftsize = aua.length;
+                }
+                window.raf = requestAnimationFrame(loop);
+            }
+            audio.onpause = function() {
+                window.cancelAnimationFrame(window.raf);
+            }
+        }
+
+        function loop() {
+            var aua = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(aua);
+            var showData = getDelData(aua);
+            drawShow(showData);
+            window.raf = requestAnimationFrame(loop);
+        }
+
+        function drawShow(data) {
+            ctx.clearRect(0,0,can.width,can.height);
+            for (var i = 0, l = data.length; i < l; i++) {
+                ctx.beginPath();
+                ctx.fillRect(waveWidth * (i+1), window.innerHeight/2 - data[i]*2/2,  waveWidth, 2*data[i] + 1);
+                ctx.closePath();
+            }
+        }
+
+        function getDelData(data) {
+            var newData = [];
+            for (var i = 0, l = data.length; i < l; i += perLen) {
+                newData.push(
+                    (function(temp) {
+                        var tData = 0;
+                        for (var j=0;j<perLen;j++) {
+                            tData+=temp[j];
+                        }
+                        return tData/perLen;
+                    })(data.slice(i, i+perLen))
+                );
+            }
+            return newData;
+        }
+
+        doArrayBuffer();
+    </script>
+</body>
+
+</html>

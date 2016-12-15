@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+    canvas{border: 2px solid #333;}
+    /* img{width:100px; height: 100px;} */
+    </style>
+</head>
+<body>
+    <img src="../3.png" id="img" alt="">
+<canvas id="can" width="800" height="400"></canvas>
+<script>
+    var _$ = function(str) {
+        var rStr = str;
+        if (/^#\S+/.test(str)) {
+            rStr = str.slice(1);
+            return [document.getElementById(rStr)];
+        } else if (/^.\S+/.test(str)) {
+            rStr = str.slice(1);
+            return document.getElementsByClassName(rStr) || [];
+        } else {
+            return document.getElementsByTagName(rStr) || [];
+        }
+    };
+    var can = _$('#can')[0];
+    var ctx = can.getContext('2d');
+    var oImg = _$('#img')[0];
+
+
+    // ctx.beginPath();
+    // ctx.fillStyle = 'rgba(200,200,0,.9)';
+    // ctx.rect(can.width/2- 5,can.height/2- 5,10,10);
+    // ctx.closePath();
+    // ctx.fill();
+    //
+    // ctx.shadowBlur=10;
+    // ctx.shadowOffsetX=20;
+    // ctx.shadowOffsetY=20;
+    // ctx.shadowColor="black";
+    //
+    // ctx.beginPath();
+    // ctx.fillStyle = 'rgba(200,200,0,.5)';
+    // ctx.rect(0,0, 100, 100);
+    // ctx.closePath();
+    // ctx.fill();
+
+
+    function drawPic(oImg,x,y,w,h) {
+        x = x || 100;
+        y = y || 100;
+        w = w || 100;
+        h = h || 100;
+        ctx.drawImage(oImg, 0,0, oImg.width, oImg.height, -0.5 * x,-0.5 * y,w/2,h/2);
+    }
+    oImg.onload = canInit;
+
+    function mask() {
+        console.log('maxk');
+        ctx.beginPath();
+        ctx.fillStyle = 'rgba(255,255,255,.33)';
+        ctx.fillRect(0,0,can.width,can.height);
+        ctx.closePath();
+    }
+
+    function drawRect(deg){
+        mask();
+        canRotate(Math.PI * deg / 180 , function() {
+
+            ctx.beginPath();
+            ctx.fillStyle = 'rgba(200,0,100,1)';
+            console.log('fill');
+            ctx.fillRect(-50,-50, 20, 20);
+            ctx.closePath();
+            // ctx.fill();
+        }, ctx);
+    }
+
+    function canInit() {
+        // ctx.drawImage(oImg, 0, 0, 300, oImg.height, 0,0,100,100);
+        var index = 0;
+        var timmer = setInterval(function() {
+            drawRect(index+= 30);
+            index = index%360;
+            // clearInterval(timmer);
+        }, 100);
+
+        // canRotate(Math.PI * 60 / 180 , function() {
+        //     drawPic(oImg, 200, 200, 100, 100)
+        // }, ctx);
+        //
+        // canRotate(Math.PI * 120 / 180 , function() {
+        //     drawPic(oImg, 200, 200, 100, 100)
+        // }, ctx);
+        // canRotate(Math.PI * 180 / 180 , function() {
+        //     drawPic(oImg, 200, 200, 100, 100)
+        // }, ctx);
+        // canRotate(Math.PI * 240 / 180 , function() {
+        //     drawPic(oImg, 200, 200, 100, 100)
+        // }, ctx);
+        // canRotate(Math.PI * 300 / 180 , function() {
+        //     drawPic(oImg, 200, 200, 100, 100)
+        // }, ctx);
+        // canRotate(Math.PI * 360 / 180 , function() {
+        //     drawPic(oImg, 200, 200, 100, 100)
+        // }, ctx);
+        // canRotate(Math.PI * 60 / 180 , function() {
+        //     drawPic(oImg, 200, 200, 100, 100)
+        // }, ctx);
+        // canRotate(Math.PI * 0 / 180 , function() {
+        //     ctx.beginPath();
+        //     ctx.fillStyle = 'rgba(100,20,100,1)';
+        //     ctx.rect(0,0, 100, 100);
+        //     ctx.closePath();
+        //     ctx.fill();
+        // }, ctx);
+
+        // ctx.rotate(-45);
+        //
+        // ctx.beginPath();
+        // ctx.fillStyle = 'rgba(100,0,100,.5)';
+        // ctx.rect(100,20, 100, 100);
+        // ctx.closePath();
+        // ctx.fill();
+
+    }
+
+
+    function canRotate(deg, fn, ctx) {
+        ctx.translate(can.width/2, can.height/2);
+        ctx.rotate(deg);
+
+        // ctx.translate(-can.width/2, can.height/2);
+        fn && fn();
+        ctx.rotate(-deg);
+        ctx.translate(-can.width/2, -can.height/2);
+
+
+    }
+</script>
+</body>
+
+</html>

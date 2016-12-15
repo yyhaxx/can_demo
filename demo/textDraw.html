@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        body {
+            font-family: monospace;
+            line-height: 1.4em;
+            font-size: 12px;
+        }
+
+        #div {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            box-shadow: -2px 2px 20px #333;
+            transform: scale(0.55);
+        }
+    </style>
+</head>
+
+<body>
+    <img id="j_img" alt="">
+    <canvas id="can" width="400" height="400"></canvas>
+    <div id="div"></div>
+    <script>
+        var cfg = {
+            "0": ".",
+            "15": "-",
+            "30": ",",
+            "45": ":",
+            "52": "_",
+            "62": "~",
+            "74": ";",
+            "84": "|",
+            "86": "!",
+            "94": "/",
+            "106": "r",
+            "108": "=",
+            "112": "l",
+            "118": "*",
+            "120": "?",
+            "122": "c",
+            "124": "v",
+            "132": "f",
+            "134": "7",
+            "136": "j",
+            "138": "t",
+            "142": ")",
+            "144": "x",
+            "146": "z",
+            "150": "}",
+            "158": "[",
+            "160": "o",
+            "162": "2",
+            "166": "a",
+            "168": "h",
+            "170": "k",
+            "174": "3",
+            "188": "p",
+            "190": "q",
+            "200": "m",
+            "210": "$",
+            "212": "#",
+            "220": "g",
+            "222": "8",
+            "242": "&",
+            "254": "%"
+        }
+        var oImg = document.getElementById('j_img');
+        var can = document.getElementById('can');
+        var ctx = can.getContext('2d');
+        var oDiv = document.getElementById('div');
+        var index = 1;
+        var flag = true;
+        var timmer = setInterval(function() {
+            if (flag && index == 14 || (!flag && index == 1)) {
+                flag = !flag;
+            }
+            oImg.src = '../img/' + index + '.png';
+            if (!flag) {
+                index--;
+            } else {
+                index++;
+            }
+        }, 100);
+
+        oImg.onload = function() {
+
+            ctx.drawImage(oImg, 0, 0, oImg.width, oImg.height, 0, 0, 80, 35 / (oImg.width / oImg.height));
+            var imgData = ctx.getImageData(0, 0, 80, 35 / (oImg.width / oImg.height));
+            var pos = [];
+            for (var i = 0, data = imgData.data, l = data.length; i < l; i += 4) {
+                if (data[i + 3] != 0) {
+                    var tempText = getText((data[i] + data[i + 1] + data[i + 2]) / 3);
+                    pos[i] = tempText;
+                } else {
+                    pos[i] = '&nbsp;';
+                }
+                if (Math.floor(i / 4) % imgData.width == imgData.width - 1) {
+                    pos[i] = '<br>'
+                }
+            }
+            oDiv.innerHTML = pos.join('');
+        }
+
+        function getText(num) {
+            num = 255 - num;
+            var temp = '';
+            for (var k in cfg) {
+                if (k <= num) {
+                    temp = cfg[k];
+                } else {
+                    return temp;
+                }
+            }
+            return temp;
+        }
+    </script>
+</body>
+
+</html>
