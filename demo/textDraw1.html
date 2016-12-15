@@ -78,7 +78,7 @@
         var ctx = can.getContext('2d');
         var oDiv = document.getElementById('div');
 
-        oImg.src = './img/' + (window.location.search.split('?')[1] || 'img=1.png').split('=')[1];
+        oImg.src = '../img/' + (window.location.search.split('?')[1] || 'img=1.png').split('=')[1];
         oImg.onload = function() {
 
             ctx.drawImage(oImg, 0, 0, oImg.width, oImg.height, 0, 0, 80, 35 / (oImg.width / oImg.height));
