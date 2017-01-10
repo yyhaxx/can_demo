@@ -8,18 +8,22 @@
     <mtea author="win7killer@163.com"></mtea>
     <title>Document</title>
     <style>
+    *{
+        margin: 0; padding: 0;
+    }
         .wrapper {
             width: 600px;
             height: 600px;
-            margin: 100px auto;
+            margin: 200px auto 0;
             position: relative;
+            overflow: hidden;
         }
 
         canvas {
             background: #fafafa;
-            border: 1px solid #000;
-
+            /* border: 1px solid #000; */
             display: block;
+            /* width: 50%; */
             /* border-radius: 50%; */
         }
 
@@ -37,7 +41,7 @@
             right: 20px;
             width: 200px;
             padding: 10px;
-            height: 300px;
+            /* height: 300px; */
             border: 1px solid rgba(10, 10, 10, .7);
             /* border-radius: 4px; */
             box-shadow: 10px 7px 10px #999;
@@ -47,7 +51,8 @@
             width: 80px;
             margin-left: 20px;
         }
-        label{
+
+        label {
             text-align: justify;
         }
 
@@ -59,7 +64,7 @@
 </head>
 
 <body>
-    <div class="wrapper">
+    <div class="wrapper" id="wrapper">
         <canvas id="can_role" width="600px" height="600px"></canvas>
         <canvas id="can" width="600px" height="600px"></canvas>
     </div>
@@ -85,8 +90,9 @@
     </div>
     <script>
         var ctx = can.getContext('2d');
-        var ctx_role= can_role.getContext('2d');
-
+        var ctx_role = can_role.getContext('2d');
+        can.width = can.height = can_role.width = can_role.height = window.screen.width;
+        wrapper.style.width = wrapper.style.height = window.screen.width + 'px';
         ctx_role.lineJoin = ctx.lineJoin = "round";
         ctx_role.lineCap = ctx.lineCap = "round";
         var pieace = 6;
@@ -125,31 +131,38 @@
                     document.onmouseup = document.onmousemove = null;
                 };
             };
-
-            can.ontouchstart = function(e) {
+            can.addEventListener('touchstart', function(e) {
                 console.log(e);
-                if (e.button != 0) {
-                    return false;
-                }
+                // if (e.button != 0) {
+                //     return false;
+                // }
                 var ev = e || event;
-                var op = {};
-                op.ex = op.bx = e.clientX - can.parentElement.offsetLeft + window.scrollX;
-                op.ey = op.by = e.clientY - can.parentElement.offsetTop + window.scrollY;
+                op = can.op = {};
+                op.ex = op.bx = e.touches[0].clientX - can.parentElement.offsetLeft + window.scrollX;
+                op.ey = op.by = e.touches[0].clientY - can.parentElement.offsetTop + window.scrollY;
                 drawFn(op);
-                document.ontouchmove = function(e) {
-                    document.body.style.cursor = 'pointer';
-                    var ev = e || event;
-                    op.bx = op.ex;
-                    op.by = op.ey;
-                    op.ex = e.clientX - can.parentElement.offsetLeft + window.scrollX;
-                    op.ey = e.clientY - can.parentElement.offsetTop + window.scrollY;
-                    drawFn(op);
-                };
-                document.ontouchend = function() {
-                    document.body.style.cursor = 'default';
-                    document.ontouchend = document.ontouchmove = null;
-                };
-            };
+                can.addEventListener('touchmove', touchMoveFn);
+                can.addEventListener('touchend', touchEndFn);
+            });
+
+            function touchEndFn() {
+                document.body.style.cursor = 'default';
+                can.removeEventListener('touchmove', touchMoveFn);
+                can.removeEventListener('touchend', touchEndFn);
+            }
+
+
+            function touchMoveFn(e) {
+                op = can.op;
+                document.body.style.cursor = 'pointer';
+                var ev = e || event;
+                op.bx = op.ex;
+                op.by = op.ey;
+                op.ex = e.touches[0].clientX - can.parentElement.offsetLeft + window.scrollX;
+                op.ey = e.touches[0].clientY - can.parentElement.offsetTop + window.scrollY;
+                drawFn(op);
+                return false;
+            }
 
             color_val.onchange = function() {
                 ctx.save();
@@ -209,18 +222,18 @@
         }
 
         function baseLine() {
-            ctx_role.clearRect(0,0,ctx_role.canvas.width,ctx_role.canvas.height);
-            var deg =360 / pieace;
+            ctx_role.clearRect(0, 0, ctx_role.canvas.width, ctx_role.canvas.height);
+            var deg = 360 / pieace;
             console.log(deg);
             ctx_role.lineWidth = 1;
             ctx_role.strokeStyle = 'rgba(0,0,0,.5)';
             for (var i = 0, l = pieace; i < l; i++) {
-                drawRotate(i*deg / 180 * Math.PI, function(ctx_role) {
+                drawRotate(i * deg / 180 * Math.PI, function(ctx_role) {
                     draw({
-                        bx: can_role.width/2,
-                        by: can_role.width/2,
-                        ex: can_role.width/2 + can_role.width,
-                        ey: can_role.width/2
+                        bx: can_role.width / 2,
+                        by: can_role.width / 2,
+                        ex: can_role.width / 2 + can_role.width,
+                        ey: can_role.width / 2
                     }, ctx_role);
                 }, ctx_role);
             }
