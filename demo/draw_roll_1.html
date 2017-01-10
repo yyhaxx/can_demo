@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <mtea author="win7killer@163.com"></mtea>
+    <title>Document</title>
+    <style>
+        .wrapper {
+            width: 600px;
+            height: 600px;
+            margin: 100px auto;
+            position: relative;
+        }
+
+        canvas {
+            background: #fafafa;
+            border: 1px solid #000;
+
+            display: block;
+            /* border-radius: 50%; */
+        }
+
+        #can_role {
+            background: none;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            pointer-events: none;
+        }
+
+        #panel_box {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 200px;
+            padding: 10px;
+            height: 300px;
+            border: 1px solid rgba(10, 10, 10, .7);
+            /* border-radius: 4px; */
+            box-shadow: 10px 7px 10px #999;
+        }
+
+        input {
+            width: 80px;
+            margin-left: 20px;
+        }
+        label{
+            text-align: justify;
+        }
+
+        .img_name_box,
+        #save_btn {
+            /* display: none; */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <canvas id="can_role" width="600px" height="600px"></canvas>
+        <canvas id="can" width="600px" height="600px"></canvas>
+    </div>
+    <div id="panel_box">
+        <p>
+            <label>画笔颜色<input id="color_val" type="color" value="#0099ff"/></label>
+        </p>
+        <p>
+            <label>画笔宽度<input type="number" id="line_width_val" min="1" max="20" value="2"/></label>
+        </p>
+        <p>
+            <label>扇形份数<input type="number" id="pieaceNum" min="1" max="200" value="12"/></label>
+        </p>
+        <p>
+            <label>参考线<input type="checkbox" id="onOff" checked="checked"/></label>
+        </p>
+        <p class="img_name_box">
+            <label>图片名称<input type="text" id="imgName" placeholder="ex:test.png"></label>
+        </p>
+        <p>
+            <a href="javascript:;" id="save_btn" target="">下载到本地</a>
+        </p>
+    </div>
+    <script>
+        var ctx = can.getContext('2d');
+        var ctx_role= can_role.getContext('2d');
+
+        ctx_role.lineJoin = ctx.lineJoin = "round";
+        ctx_role.lineCap = ctx.lineCap = "round";
+        var pieace = 6;
+
+        function drawFn(op) {
+            var deg = Math.floor(360 / pieace);
+            for (var i = 0, l = 360; i < l; i += deg) {
+                drawRotate(i / 180 * Math.PI, function(ctx) {
+                    draw(op);
+                });
+            }
+        }
+
+        function bind() {
+            can.onmousedown = function(e) {
+                console.log(e);
+                if (e.button != 0) {
+                    return false;
+                }
+                var ev = e || event;
+                var op = {};
+                op.ex = op.bx = e.clientX - can.parentElement.offsetLeft + window.scrollX;
+                op.ey = op.by = e.clientY - can.parentElement.offsetTop + window.scrollY;
+                drawFn(op);
+                document.onmousemove = function(e) {
+                    document.body.style.cursor = 'pointer';
+                    var ev = e || event;
+                    op.bx = op.ex;
+                    op.by = op.ey;
+                    op.ex = e.clientX - can.parentElement.offsetLeft + window.scrollX;
+                    op.ey = e.clientY - can.parentElement.offsetTop + window.scrollY;
+                    drawFn(op);
+                };
+                document.onmouseup = function() {
+                    document.body.style.cursor = 'default';
+                    document.onmouseup = document.onmousemove = null;
+                };
+            };
+
+            color_val.onchange = function() {
+                ctx.save();
+                ctx.strokeStyle = color_val.value;
+            }
+
+            line_width_val.onchange = function() {
+                ctx.save();
+                ctx.lineWidth = line_width_val.value;
+            }
+
+            pieaceNum.onchange = function() {
+                ctx.clearRect(0, 0, can.width, can.height);
+                reset();
+            }
+
+            onOff.onchange = function() {
+                if (this.checked == true) {
+                    can_role.style.display = 'block';
+                } else {
+                    can_role.style.display = 'none';
+                }
+            }
+
+            save_btn.onclick = download;
+        }
+
+        function draw(option, _ctx) {
+            _ctx = _ctx || ctx;
+            _ctx.beginPath();
+            _ctx.moveTo(option.bx - _ctx.canvas.width / 2, option.by - _ctx.canvas.height / 2);
+            _ctx.lineTo(option.ex - _ctx.canvas.width / 2, option.ey - _ctx.canvas.height / 2);
+            _ctx.stroke();
+        }
+
+        function drawRotate(deg, fn, _ctx) {
+            _ctx = _ctx || ctx
+            _ctx.save();
+            _ctx.translate(_ctx.canvas.width / 2, _ctx.canvas.height / 2);
+            _ctx.rotate(deg);
+            fn && fn(_ctx);
+            _ctx.restore();
+        }
+
+        function reset() {
+            pieace = pieaceNum.value;
+            console.log(pieace);
+            ctx.strokeStyle = 'rgba(100,100,100,.7)';
+            baseLine();
+            ctx.lineWidth = line_width_val.value;
+            ctx.strokeStyle = color_val.value;
+        }
+
+        function init() {
+            reset();
+            bind();
+        }
+
+        function baseLine() {
+            ctx_role.clearRect(0,0,ctx_role.canvas.width,ctx_role.canvas.height);
+            var deg =360 / pieace;
+            console.log(deg);
+            ctx_role.lineWidth = 1;
+            ctx_role.strokeStyle = 'rgba(0,0,0,.5)';
+            for (var i = 0, l = pieace; i < l; i++) {
+                drawRotate(i*deg / 180 * Math.PI, function(ctx_role) {
+                    draw({
+                        bx: can_role.width/2,
+                        by: can_role.width/2,
+                        ex: can_role.width/2 + can_role.width,
+                        ey: can_role.width/2
+                    }, ctx_role);
+                }, ctx_role);
+            }
+        }
+
+        function download(e) {
+            console.log(e);
+            var data = can.toDataURL('image/png', 0.8);
+            var $a = document.createElement('a');
+            $a.download = imgName.value || 'default.png';
+            $a.target = '_blank';
+            $a.href = data;
+
+            if (typeof MouseEvent === 'function') {
+                var evt = new MouseEvent('click', {
+                    view: window,
+                    bubbles: true,
+                    cancelable: false
+                });
+                $a.dispatchEvent(evt);
+            }
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

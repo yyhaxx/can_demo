@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        canvas{
+            background: #fefefe;
+            border: 1px solid #000;
+            margin: 0 auto;
+            display: block;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+ <canvas id="can" width="600px" height="600px"></canvas>
+<script>
+
+var ctx = can.getContext('2d');
+ctx.strokeStyle = '#f90';
+function drawFn(op) {
+    for (var i = 0, l = 360; i<l ; i+=30) {
+        drawRotate(i/180 * Math.PI, function(ctx) {
+            draw(op);
+        });
+    }
+
+}
+
+function bind() {
+    can.onmousedown = function(e) {
+        var ev = e || event;
+        var op = {};
+        op.ex = op.bx = e.clientX - can.offsetLeft;
+        op.ey = op.by = e.clientY - can.offsetTop;
+        drawFn(op);
+        document.onmousemove = function(e){
+            document.body.style.cursor = 'pointer';
+            var ev = e || event;
+            op.bx = op.ex;
+            op.by = op.ey;
+            op.ex = e.clientX - can.offsetLeft;
+            op.ey = e.clientY - can.offsetTop;
+            drawFn(op);
+        };
+        document.onmouseup = function(){
+            document.body.style.cursor = 'default';
+            document.onmouseup = document.onmousemove = null;
+        };
+    };
+}
+
+function draw(option) {
+    ctx.beginPath();
+    ctx.moveTo(option.bx - can.width/2, option.by - can.height/2);
+    ctx.lineTo(option.ex - can.width/2, option.ey - can.height/2);
+    ctx.stroke();
+}
+
+// window.qaf = requestAnimationFrame(function(){
+//     loop(drawFn);
+// });
+
+function drawRotate(deg, fn) {
+    ctx.save();
+    ctx.translate(can.width/2, can.height/2);
+    ctx.rotate(deg);
+    fn && fn(ctx);
+    ctx.restore();
+}
+
+function loop() {
+    drawFn();
+    // loop
+    requestAnimationFrame(loop);
+}
+
+bind();
+</script>
+</body>
+</html>
