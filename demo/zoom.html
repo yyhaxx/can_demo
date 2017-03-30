@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        canvas{display: block; background: rgba(0,0,0,.1); border: 1px solid #333;}
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="box">
+            <canvas id="canvas" width="400" height="320"></canvas>
+        </div>
+        <div id="hideBox"></div>
+    </div>
+    <script>
+
+    var can = document.getElementById('canvas');
+    var ctx = can.getContext('2d');
+
+    var can1 = document.createElement('canvas');
+    var ctx1 = can1.getContext('2d');
+
+    can1.width = can.width;
+    can1.height = can.height;
+
+    hideBox.appendChild(can1);
+
+    var oImg = new Image();
+    oImg.onload = function() {
+        ctx.drawImage(oImg, 0,0);
+        ctx1.drawImage(oImg, 0,0);
+
+    };
+    oImg.src = '../img/3.jpg';
+
+
+    function msMove() {
+        can.addEventListener('mousemove', function(e){
+            var x = e.clientX - can.offsetLeft;
+            var y = e.clientY - can.offsetTop;
+            console.log(x,y);
+            ctx.putImageDate();
+        });
+    }
+    msMove();
+    </script>
+</body>
+</html>
