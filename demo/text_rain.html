@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        #canvas {
+            background: #000;
+            margin: 20px auto;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvas"></canvas>
+    <script>
+        function FontRain(op) {
+            this.oCan = document.getElementById('canvas');
+            this.oCan.width = 1200 || window.outerWidth;
+            this.oCan.height = 800 || window.outerHeight;
+            this.oCtx = this.oCan.getContext('2d');
+            this.reset(op);
+            this.aFont = ['赵', '钱', '孙', '李', '周', '武', '郑', '王'];
+            //this.aFont = ['0', '1'];
+            this.list = [];
+            this.fontArr = ['20px', '12px', '5px'];
+            //this.fontArr = ['14px'];
+            this.fontW = 30;
+            this.color = ['#f66', '#f96', '#ff6', '#6f6', '#66f', '#69f', '#f69'];
+
+            this.init(op);
+        }
+        FontRain.prototype.init = function(op) {
+            this.setOption();
+            var _this = this;
+            clearInterval(this.timer);
+            this.timer = setInterval(function() {
+                _this.draw.call(_this)
+            }, 80);
+        };
+        FontRain.prototype.setOption = function() {
+            for (var i = 0, l = Math.floor(this.oCan.width / this.fontW); i < l; i++) {
+                this.list[i] = {};
+                this.list[i].de = Math.round(Math.random() * 1000) - 1000;
+                this.list[i].va = 0;
+            }
+        };
+
+        FontRain.prototype.draw = function() {
+            this.oCtx.fillStyle = '#0f0';
+            for (var i = 0, l = this.list.length; i < l; i++) {
+                //this.oCtx.fillStyle = this.color[Math.floor(Math.random()*this.color.length)];
+                this.oCtx.font = '' + this.fontArr[Math.round(Math.random() * this.fontArr.length - 1)] + ' 宋体';
+                if (this.list[i].va > this.oCan.height + 150) {
+                    this.list[i].va = this.list[i].de;
+                }
+                this.oCtx.fillText(this.randomFont(this.aFont), 10 + i * this.fontW, this.list[i].va);
+                this.list[i].va += 25;
+            }
+            this.oCtx.fillStyle = 'rgba(0,0,0,.1)';
+            this.oCtx.fillRect(0, 0, this.oCan.width, this.oCan.height);
+        };
+        FontRain.prototype.reset = function(op, isClear) {
+            if (isClear) {
+                this.oCtx.clearRect(0, 0, this.oCan.width, this.oCan.height);
+            }
+            this.oCtx.textBaseline = "top";
+            this.oCtx.textAlign = "center";
+            this.oCtx.strokeStyle = this.oCtx.fillStyle = '#000';
+            this.oCtx.lineWidth = 1.0;
+            this.oCtx.globalCompositeOperation = 'source-over';
+            this.oCtx.globalAlpha = '1';
+            this.oCtx.lineJoin = this.oCtx.lineCap = 'round';
+        };
+        FontRain.prototype.randomFont = function(arr) {
+            return arr[Math.round(Math.random() * (arr.length - 1))];
+        };
+
+        new FontRain();
+    </script>
+</body>
+
+</html>

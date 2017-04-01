@@ -22,6 +22,8 @@
             perDeg: 1,
         };
 
+        var aTarget = [];
+
         var can = document.getElementById('can');
         var ctx = can.getContext('2d');
         var deg = 0;
@@ -83,6 +85,13 @@
             ctx.arc(150, 150, 150, (-2 * CFG.perDeg + iDeg) / 180 * Math.PI, (0 + iDeg) / 180 * Math.PI);
             ctx.closePath();
             ctx.fill();
+        }
+
+        function bornTarget() {
+            aTarget.push({
+                deg: Math.round(Math.random() * 360),
+                r: Math.round(Math.random() * can.width / 2)
+            });
         }
 
         init();
