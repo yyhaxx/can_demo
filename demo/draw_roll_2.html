@@ -8,23 +8,43 @@
     <mtea author="win7killer@163.com"></mtea>
     <title>Document</title>
     <style>
-    *{
-        margin: 0; padding: 0;
-    }
-        .wrapper {
-            width: 600px;
-            height: 600px;
-            margin: 200px auto 0;
-            position: relative;
-            overflow: hidden;
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        p {
+            line-height: 15px;
+            font-size: 12px;
+        }
+
+        @media screen and (max-width: 768px) {
+            .wrapper {
+                width: auto;
+                position: relative;
+                overflow: hidden;
+            }
+        }
+
+        @media screen and (min-width: 769px) {
+            .wrapper {
+                width: 600px;
+                height: 600px;
+                margin: 100px auto 0;
+                position: relative;
+                overflow: hidden;
+            }
+            #panel_box {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                width: 200px;
+            }
         }
 
         canvas {
             background: #fafafa;
-            /* border: 1px solid #000; */
             display: block;
-            /* width: 50%; */
-            /* border-radius: 50%; */
         }
 
         #can_role {
@@ -36,15 +56,11 @@
         }
 
         #panel_box {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 200px;
             padding: 10px;
-            /* height: 300px; */
+            margin-top: 10px;
             border: 1px solid rgba(10, 10, 10, .7);
-            /* border-radius: 4px; */
             box-shadow: 10px 7px 10px #999;
+            z-index: 100;
         }
 
         input {
@@ -56,17 +72,53 @@
             text-align: justify;
         }
 
-        .img_name_box,
-        #save_btn {
-            /* display: none; */
+        #pop {
+            display: none;
+            width: 200px;
+            height: 25px;
+            padding: 25px;
+            background: #fff;
+            border: 1px solid #999;
+            text-align: center;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-50%);
+            z-index: 1000;
+        }
+
+        #mask {
+            display: none;
+            z-index: 999;
+            width: 100%;
+            height: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: rgba(0, 0, 0, .5);
+        }
+
+        #J_close {
+            position: absolute;
+            top: 0;
+            right: 5px;
+            width: 10px;
+            height: 10px;
+            color: #f90;
+            text-decoration: none;
         }
     </style>
 </head>
 
 <body>
     <div class="wrapper" id="wrapper">
-        <canvas id="can_role" width="600px" height="600px"></canvas>
-        <canvas id="can" width="600px" height="600px"></canvas>
+        <canvas id="can_role"></canvas>
+        <canvas id="can"></canvas>
+    </div>
+    <div id="mask"></div>
+    <div id="pop">
+        <a href="javascript:;" id="J_close">x</a>
+        <p id="down_wrapper"></p>
     </div>
     <div id="panel_box">
         <p>
@@ -89,13 +141,16 @@
         </p>
     </div>
     <script>
+        var pieace = 6;
+
         var ctx = can.getContext('2d');
         var ctx_role = can_role.getContext('2d');
-        can.width = can.height = can_role.width = can_role.height = window.screen.width;
-        wrapper.style.width = wrapper.style.height = window.screen.width + 'px';
+
+        can.width = can.height = can_role.width = can_role.height = window.screen.width > 768 ? 600 : window.screen.width;
+        mask.style.height = window.screen.height + 'px';
         ctx_role.lineJoin = ctx.lineJoin = "round";
         ctx_role.lineCap = ctx.lineCap = "round";
-        var pieace = 6;
+
 
         function drawFn(op) {
             var deg = Math.floor(360 / pieace);
@@ -106,7 +161,76 @@
             }
         }
 
-        function bind() {
+        function draw(option, _ctx) {
+            _ctx = _ctx || ctx;
+            _ctx.beginPath();
+            _ctx.moveTo(option.bx - _ctx.canvas.width / 2, option.by - _ctx.canvas.height / 2);
+            _ctx.lineTo(option.ex - _ctx.canvas.width / 2, option.ey - _ctx.canvas.height / 2);
+            _ctx.stroke();
+        }
+
+        function drawRotate(deg, fn, _ctx) {
+            _ctx = _ctx || ctx
+            _ctx.save();
+            _ctx.translate(_ctx.canvas.width / 2, _ctx.canvas.height / 2);
+            _ctx.rotate(deg);
+            fn && fn(_ctx);
+            _ctx.restore();
+        }
+
+        function baseLine() {
+            ctx_role.clearRect(0, 0, ctx_role.canvas.width, ctx_role.canvas.height);
+            var deg = 360 / pieace;
+            console.log(deg);
+            ctx_role.lineWidth = 1;
+            ctx_role.strokeStyle = 'rgba(0,0,0,.5)';
+            for (var i = 0, l = pieace; i < l; i++) {
+                drawRotate(i * deg / 180 * Math.PI, function(ctx_role) {
+                    draw({
+                        bx: can_role.width / 2,
+                        by: can_role.width / 2,
+                        ex: can_role.width / 2 + can_role.width,
+                        ey: can_role.width / 2
+                    }, ctx_role);
+                }, ctx_role);
+            }
+        }
+
+        // function download(e) {
+        //     console.log(e);
+        //     var data = can.toDataURL('image/png', 0.8);
+        //     var $a = document.createElement('a');
+        //     $a.download = imgName.value || 'default.png';
+        //     $a.target = '_blank';
+        //     $a.href = data;
+        //
+        //     if (typeof MouseEvent === 'function') {
+        //         var evt = new MouseEvent('click', {
+        //             view: window,
+        //             bubbles: true,
+        //             cancelable: false
+        //         });
+        //         $a.dispatchEvent(evt);
+        //     }
+        // }
+
+        function download(e) {
+            console.log(e);
+            var data = can.toDataURL('image/png', 0.8);
+            var $a = document.createElement('a');
+            $a.download = imgName.value || 'default.png';
+            $a.target = '_blank';
+            $a.onclick = function() {
+                mask.style.display = pop.style.display = 'none';
+            };
+            $a.href = data;
+
+            $a.innerHTML = '下载';
+            pop.appendChild($a);
+            mask.style.display = pop.style.display = 'block';
+        }
+
+        function bindPc() {
             can.onmousedown = function(e) {
                 console.log(e);
                 if (e.button != 0) {
@@ -131,11 +255,10 @@
                     document.onmouseup = document.onmousemove = null;
                 };
             };
+        }
+
+        function bindWp() {
             can.addEventListener('touchstart', function(e) {
-                console.log(e);
-                // if (e.button != 0) {
-                //     return false;
-                // }
                 var ev = e || event;
                 op = can.op = {};
                 op.ex = op.bx = e.touches[0].clientX - can.parentElement.offsetLeft + window.scrollX;
@@ -151,7 +274,6 @@
                 can.removeEventListener('touchend', touchEndFn);
             }
 
-
             function touchMoveFn(e) {
                 op = can.op;
                 document.body.style.cursor = 'pointer';
@@ -163,14 +285,14 @@
                 drawFn(op);
                 return false;
             }
+        }
 
+        function bindSets() {
             color_val.onchange = function() {
-                ctx.save();
                 ctx.strokeStyle = color_val.value;
             }
 
             line_width_val.onchange = function() {
-                ctx.save();
                 ctx.lineWidth = line_width_val.value;
             }
 
@@ -186,25 +308,18 @@
                     can_role.style.display = 'none';
                 }
             }
+        }
+
+        function bind() {
+            bindPc();
+            bindWp();
+            bindSets();
 
             save_btn.onclick = download;
-        }
 
-        function draw(option, _ctx) {
-            _ctx = _ctx || ctx;
-            _ctx.beginPath();
-            _ctx.moveTo(option.bx - _ctx.canvas.width / 2, option.by - _ctx.canvas.height / 2);
-            _ctx.lineTo(option.ex - _ctx.canvas.width / 2, option.ey - _ctx.canvas.height / 2);
-            _ctx.stroke();
-        }
-
-        function drawRotate(deg, fn, _ctx) {
-            _ctx = _ctx || ctx
-            _ctx.save();
-            _ctx.translate(_ctx.canvas.width / 2, _ctx.canvas.height / 2);
-            _ctx.rotate(deg);
-            fn && fn(_ctx);
-            _ctx.restore();
+            J_close.onclick = function() {
+                mask.style.display = pop.style.display = 'none';
+            }
         }
 
         function reset() {
@@ -219,42 +334,6 @@
         function init() {
             reset();
             bind();
-        }
-
-        function baseLine() {
-            ctx_role.clearRect(0, 0, ctx_role.canvas.width, ctx_role.canvas.height);
-            var deg = 360 / pieace;
-            console.log(deg);
-            ctx_role.lineWidth = 1;
-            ctx_role.strokeStyle = 'rgba(0,0,0,.5)';
-            for (var i = 0, l = pieace; i < l; i++) {
-                drawRotate(i * deg / 180 * Math.PI, function(ctx_role) {
-                    draw({
-                        bx: can_role.width / 2,
-                        by: can_role.width / 2,
-                        ex: can_role.width / 2 + can_role.width,
-                        ey: can_role.width / 2
-                    }, ctx_role);
-                }, ctx_role);
-            }
-        }
-
-        function download(e) {
-            console.log(e);
-            var data = can.toDataURL('image/png', 0.8);
-            var $a = document.createElement('a');
-            $a.download = imgName.value || 'default.png';
-            $a.target = '_blank';
-            $a.href = data;
-
-            if (typeof MouseEvent === 'function') {
-                var evt = new MouseEvent('click', {
-                    view: window,
-                    bubbles: true,
-                    cancelable: false
-                });
-                $a.dispatchEvent(evt);
-            }
         }
 
         init();

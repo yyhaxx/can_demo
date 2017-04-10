@@ -21,10 +21,69 @@
 <body>
     <canvas id="canvas"></canvas>
     <script>
+        var cfg = {
+            "0": ".",
+            "15": "-",
+            "30": ",",
+            "45": ":",
+            "52": "_",
+            "62": "~",
+            "74": ";",
+            "84": "|",
+            "86": "!",
+            "94": "/",
+            "106": "r",
+            "108": "=",
+            "112": "l",
+            "118": "*",
+            "120": "?",
+            "122": "c",
+            "124": "v",
+            "132": "f",
+            "134": "7",
+            "136": "j",
+            "138": "t",
+            "142": ")",
+            "144": "x",
+            "146": "z",
+            "150": "}",
+            "158": "[",
+            "160": "o",
+            "162": "2",
+            "166": "a",
+            "168": "h",
+            "170": "k",
+            "174": "3",
+            "188": "p",
+            "190": "q",
+            "200": "m",
+            "210": "$",
+            "212": "#",
+            "220": "g",
+            "222": "8",
+            "242": "&",
+            "254": "%"
+        };
+
+        function drawPic() {
+            var oimg= document.createElement('img');
+            var canHide = document.createElement('canvas');
+            var ctxHide = canHide.getContext('2d');
+
+            oImg.src = '../img/' + (window.location.search.split('?')[1] || 'img=1.png').split('=')[1];
+
+            oImg.onload = function() {
+                ctxHide.drawImage(oImg, 0, 0, oImg.width, oImg.height, 0, 0, 80, 35 / (oImg.width / oImg.height));
+
+
+            }
+
+        }
+
         function FontRain(op) {
             this.oCan = document.getElementById('canvas');
-            this.oCan.width = 1200 || window.outerWidth;
-            this.oCan.height = 800 || window.outerHeight;
+            this.oCan.width = window.innerWidth;
+            this.oCan.height = window.innerHeight;
             this.oCtx = this.oCan.getContext('2d');
             this.reset(op);
             this.aFont = ['赵', '钱', '孙', '李', '周', '武', '郑', '王'];
