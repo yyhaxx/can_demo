@@ -71,42 +71,6 @@
         label {
             text-align: justify;
         }
-
-        #pop {
-            display: none;
-            width: 200px;
-            height: 25px;
-            padding: 25px;
-            background: #fff;
-            border: 1px solid #999;
-            text-align: center;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translateX(-50%) translateY(-50%);
-            z-index: 1000;
-        }
-
-        #mask {
-            display: none;
-            z-index: 999;
-            width: 100%;
-            height: 100%;
-            position: fixed;
-            top: 0;
-            left: 0;
-            background: rgba(0, 0, 0, .5);
-        }
-
-        #J_close {
-            position: absolute;
-            top: 0;
-            right: 5px;
-            width: 10px;
-            height: 10px;
-            color: #f90;
-            text-decoration: none;
-        }
     </style>
 </head>
 
@@ -114,11 +78,6 @@
     <div class="wrapper" id="wrapper">
         <canvas id="can_role"></canvas>
         <canvas id="can"></canvas>
-    </div>
-    <div id="mask"></div>
-    <div id="pop">
-        <a href="javascript:;" id="J_close">x</a>
-        <p id="down_wrapper"></p>
     </div>
     <div id="panel_box">
         <p>
@@ -147,7 +106,7 @@
         var ctx_role = can_role.getContext('2d');
 
         can.width = can.height = can_role.width = can_role.height = window.screen.width > 768 ? 600 : window.screen.width;
-        mask.style.height = window.screen.height + 'px';
+
         ctx_role.lineJoin = ctx.lineJoin = "round";
         ctx_role.lineCap = ctx.lineCap = "round";
 
@@ -181,7 +140,6 @@
         function baseLine() {
             ctx_role.clearRect(0, 0, ctx_role.canvas.width, ctx_role.canvas.height);
             var deg = 360 / pieace;
-            console.log(deg);
             ctx_role.lineWidth = 1;
             ctx_role.strokeStyle = 'rgba(0,0,0,.5)';
             for (var i = 0, l = pieace; i < l; i++) {
@@ -196,54 +154,35 @@
             }
         }
 
-        // function download(e) {
-        //     console.log(e);
-        //     var data = can.toDataURL('image/png', 0.8);
-        //     var $a = document.createElement('a');
-        //     $a.download = imgName.value || 'default.png';
-        //     $a.target = '_blank';
-        //     $a.href = data;
-        //
-        //     if (typeof MouseEvent === 'function') {
-        //         var evt = new MouseEvent('click', {
-        //             view: window,
-        //             bubbles: true,
-        //             cancelable: false
-        //         });
-        //         $a.dispatchEvent(evt);
-        //     }
-        // }
-
-        function download(e) {
-            console.log(e);
+        function download() {
             var data = can.toDataURL('image/png', 0.8);
             var $a = document.createElement('a');
             $a.download = imgName.value || 'default.png';
             $a.target = '_blank';
-            $a.onclick = function() {
-                mask.style.display = pop.style.display = 'none';
-            };
             $a.href = data;
-
-            $a.innerHTML = '下载';
-            pop.appendChild($a);
-            mask.style.display = pop.style.display = 'block';
+            $a.click();
+            // if (typeof MouseEvent === 'function') {
+            //     var evt = new MouseEvent('click', {
+            //         view: window,
+            //         bubbles: true,
+            //         cancelable: false
+            //     });
+            //     $a.dispatchEvent(evt);
+            // }
         }
 
         function bindPc() {
             can.onmousedown = function(e) {
-                console.log(e);
                 if (e.button != 0) {
                     return false;
                 }
-                var ev = e || event;
+
                 var op = {};
                 op.ex = op.bx = e.clientX - can.parentElement.offsetLeft + window.scrollX;
                 op.ey = op.by = e.clientY - can.parentElement.offsetTop + window.scrollY;
                 drawFn(op);
                 document.onmousemove = function(e) {
                     document.body.style.cursor = 'pointer';
-                    var ev = e || event;
                     op.bx = op.ex;
                     op.by = op.ey;
                     op.ex = e.clientX - can.parentElement.offsetLeft + window.scrollX;
@@ -259,7 +198,6 @@
 
         function bindWp() {
             can.addEventListener('touchstart', function(e) {
-                var ev = e || event;
                 op = can.op = {};
                 op.ex = op.bx = e.touches[0].clientX - can.parentElement.offsetLeft + window.scrollX;
                 op.ey = op.by = e.touches[0].clientY - can.parentElement.offsetTop + window.scrollY;
@@ -277,7 +215,6 @@
             function touchMoveFn(e) {
                 op = can.op;
                 document.body.style.cursor = 'pointer';
-                var ev = e || event;
                 op.bx = op.ex;
                 op.by = op.ey;
                 op.ex = e.touches[0].clientX - can.parentElement.offsetLeft + window.scrollX;
@@ -316,15 +253,10 @@
             bindSets();
 
             save_btn.onclick = download;
-
-            J_close.onclick = function() {
-                mask.style.display = pop.style.display = 'none';
-            }
         }
 
         function reset() {
             pieace = pieaceNum.value;
-            console.log(pieace);
             ctx.strokeStyle = 'rgba(100,100,100,.7)';
             baseLine();
             ctx.lineWidth = line_width_val.value;
