@@ -3,8 +3,9 @@ var http = require('http'),
     // mongodb = require('mongodb'),
     sys = require('sys'),
     // io = require('socket.io'),
-    path = require('path');
-fs = require('fs');
+    path = require('path'),
+    mime = require('mime'),
+    fs = require('fs');
 
 //config
 var aIndex = ['index.html', 'default.html', 'index.htm', 'default.htm'],
@@ -13,46 +14,130 @@ var aIndex = ['index.html', 'default.html', 'index.htm', 'default.htm'],
         email: 'emial:win7killer@163.com',
         tel: ''
     };
+
+var sStyles = `
+<style>
+*{
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+body{
+    background: #efefef; 
+    padding: 10px; 
+}
+.clearfix{
+    clear: both;
+} 
+.clearfix:after{
+    content: ' ';
+    clear: both;
+    visibility: hidden;
+    height: 0;
+    overflow: hidden;
+}
+.item{
+    float: left;
+    width: 200px;
+}
+</style>
+`;
+
+
 //全局变量
 var routerCfg = require('./router.config.js');
-var dir = path.resolve(__dirname, './www');
+var basePath = './';
 
-var rotter = {
-
-};
-
-// var basePath = '/space/node/www/';
-basePath = dir;
+var dir = path.resolve(__dirname, basePath);
+console.log('-------------\n', dir, '\n-------------\n\n');
 var delFn = {
     q: null,
     s: null,
     rewrite: function() {
-        if (this.q.url === '/index.html') {
-            this.q.url = '/index';
-        }
+        this.q.url = this.q.url.replace(/\/$/, '');
     },
     doFn: function() {
-        this.s.writeHead(200, {
+        console.log('____>\n', this.q.url);
+        if (this.q.url == '') {
+            delFn.getDir();
+        } else {
+            var sFile = path.resolve(dir, '.' + delFn.q.url);
+
+            var content = mime.lookup(sFile);
+            var encodeString = null;
+            if (/(text|javascript|css|html|xml|svg|markdown)/i.test(content)) {
+                encodeString = 'utf-8';
+                content = content + ';charset="utf-8"';
+            }
+            fs.readFile(sFile, encodeString, function(err, data) {
+                if (err) {
+                    // console.log(err, '\n', sFile, '\n\n\n\n');
+                    fs.stat(sFile, function(err, stats) {
+                        if (err) {
+                            // console.log(err);
+                            delFn.erFn();
+                        } else {
+                            // console.log(stats);
+                            if(stats.isFile()) {
+                                delFn.resFile(content, data);
+                            } else if (stats.isDirectory()) {
+                                delFn.getDir();
+                            } else {
+                                delFn.erFn();
+                            }
+                        } 
+                    });
+                } else {
+                    delFn.resFile(content, data);
+                }
+            });    
+        }
+        
+    },
+    resFile: function(content, data) {
+        delFn.s.writeHead(200, {
+            'Content-Type': content
+        });
+        delFn.s.write(data);
+        delFn.s.end();
+    },
+    getDir: function() {
+        var names = fs.readdirSync(path.resolve(dir, '.' + delFn.q.url));
+        var preUrl = delFn.q.url.replace(/(\/)[^\/]+$/, '$1');
+        var list = `
+            <li class="item"><a href="${delFn.q.url}">./</a></li>
+            <li class="item"><a href="${preUrl}">../</a></li>
+        `;
+        names.forEach(function(item, i) {
+            console.log(path.resolve(dir, '.' + delFn.q.url, './' + item));
+            var stats = fs.statSync(path.resolve(dir, '.' + delFn.q.url, './' + item));
+
+            console.log(stats.isFile());
+            if (stats && stats.isFile()) {
+                list += `<li class="item"><a href="${delFn.q.url}/${item}">${item}</a></li>`;
+            } else {
+                list += `<li class="item"><a href="${delFn.q.url}/${item}">${item}/</a></li>`
+            }
+        
+            
+        });
+        var fileDom = `
+            ${sStyles}
+            <h1>file:</h1>
+            <ul class="clearfix">${list}</ul>
+        `;
+        delFn.s.writeHead(200, {
             'Content-Type': 'text/html;charset="utf-8"'
         });
-        var str = '';
-        fs.readFile(basePath + routerCfg[delFn.q.url], 'utf-8', function(err, data) {
-            if (err) {
-                delFn.erFn();
-            } else {
-                str = data;
-                delFn.s.write(str);
-                delFn.s.end();
-            }
-        });
-
+        delFn.s.write(fileDom);
+        delFn.s.end();
     },
     erFn: function() {
         delFn.s.writeHead(404, {
             'Content-Type': 'text/html;charset="utf-8"'
         });
         var str = '';
-        fs.readFile(basePath + '/404.html', 'utf-8', function(err, data) {
+        fs.readFile(dir + '/404.html', 'utf-8', function(err, data) {
             if (err) {
                 str = '<h1>error</h1>';
             } else {
@@ -66,10 +151,10 @@ var delFn = {
         var sIndex = '';
         delFn.q = req;
         delFn.s = res;
-        console.log(req.url);
+        // console.log(req.url);
         if (!/^\/+$/.test(req.url)) {
             for (var i = 0, l = aIndex.length; i < l; i++) {
-                console.log('^\\/+' + aIndex[i] + '$');
+                // console.log('^\\/+' + aIndex[i] + '$');
                 if (new RegExp('^\\/+' + aIndex[i] + '$').test(req.url)) {
                     sIndex = aIndex[i];
                     break;
