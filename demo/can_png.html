@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        #box {
+            width: 100px;
+            height: 100px;
+            background: #efefef;
+            padding: 10px;
+        }
+
+        .item_box {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            margin-bottom: 20px;
+        }
+
+        .item {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            background: #f90;
+        }
+        canvas{
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+
+<body>
+    R:
+    <canvas id="can_r">
+
+    </canvas>
+    G:
+    <canvas id="can_g">
+
+    </canvas>
+    B:
+    <canvas id="can_b">
+
+    </canvas>
+    <!-- <div id="box"></div> -->
+    <script>
+    // const road = (function() {
+    //     var mat = window.location.search.match(/road\=[^\=\&\#\s]+/i);
+    //     if (mat.length > 0) {
+    //         return mat[0].split('=')[1];
+    //     }
+    // })();
+    const deepVal = 2;
+        var offCan = document.createElement('canvas');
+        var offCtx = offCan.getContext('2d');
+
+        var canr = document.querySelector('#can_r');
+        var ctxr = canr.getContext('2d');
+        var canb = document.querySelector('#can_b');
+        var ctxb = canb.getContext('2d');
+        var cang = document.querySelector('#can_g');
+        var ctxg = cang.getContext('2d');
+
+
+        var oImg = document.createElement('img');
+        oImg.onload = todoPng;
+        oImg.src = './img/6.jpg';
+        oImg.width = 300;
+        // oImg.height = 150;
+
+        // oImg.style.display = 'none';
+        document.body.appendChild(oImg);
+
+        function todoPng() {
+            canb.width = cang.width = canr.width = offCan.width = oImg.width;
+            canb.height = cang.height = canr.height = offCan.height = oImg.height;
+            ctxr.fillStyle = 'rgba(100,100,100,1)';
+            ctxr.strokeStyle = 'rgba(200,10,100,1)';
+            offCtx.drawImage(oImg, 0, 0, oImg.width, oImg.height);
+            var imgData = offCtx.getImageData(0, 0, oImg.width, oImg.height);
+            // ctx.putImageData(imgData, 0, 0);
+            getSpeImgData(imgData.data);
+        }
+
+        function getSpeImgData(data) {
+            var points = [];
+            var pathPoints = [];
+
+            // for (var i = 0, l = data.length; i < l; i += 4) {
+            //     if (data[i + 3] >= 200) {
+            //         var isEq = (data[i] == data[i + 1]) && (data[i] == data[i + 2]);
+            //         if (!isEq) {
+            //             points.push({
+            //                 x: i / 4 % offCan.width,
+            //                 y: Math.floor(i / 4 / offCan.width)
+            //             });
+            //         }
+            //
+            //     }
+            // }
+            // debugPoints(points);
+
+            for (var i = 0, l = data.length; i < l; i += 4) {
+                pathPoints.push({
+                    x: i / 4 % offCan.width,
+                    y: Math.floor(i / 4 / offCan.width),
+                    r: data[i],
+                    g: data[i + 1],
+                    b: data[i + 2],
+                    a: data[i + 3],
+                });
+            }
+            // filterPoints(pathPoints);
+            deepPoints(pathPoints, 'r');
+            deepPoints(pathPoints, 'g');
+            deepPoints(pathPoints, 'b');
+        }
+
+        function filterPoints(data) {
+            var tempData = [];
+            for (var i = 1, l = data.length; i < l - 1; i++) {
+
+                var topP = isPoint(data[i - offCan.width]) ? true : false;
+                var leftP = i % offCan.width != 0 && isPoint(data[i - 1]) ? true : false;
+                var rightP = (i + 1) % offCan.width != 0 && isPoint(data[i + 1]) ? true : false;;
+                var bottomP = isPoint(data[i + offCan.width]) ? true : false;
+
+                if (!topP || !leftP || !rightP || !bottomP) {
+                    isPoint(data[i]) && tempData.push(data[i]);
+                }
+            }
+            debugPoints(tempData);
+
+            // makeSvg(tempData);
+        }
+
+        function deepPoints(data, type) {
+            var tempData = [];
+            for (var i = 1, l = data.length; i < l - 1; i++) {
+
+                var topP = data[i - offCan.width];
+                var leftP = i % offCan.width != 0 && data[i - 1];
+                var rightP = (i + 1) % offCan.width != 0 && data[i + 1];
+                var bottomP = data[i + offCan.width];
+
+                if (!deep(data[i], topP, type) || !deep(data[i], leftP, type) || !deep(data[i], rightP, type) || !deep(data[i], bottomP, type)) {
+                    data[i].a >= 100 && tempData.push(data[i]);
+                }
+
+                // if (!deep(data[i], topP, type)) {
+                //     data[i].a >= 100 && tempData.push(data[i]);
+                // }
+            }
+            debugPoints(tempData, type);
+        }
+
+        function deep(data, data1, type) {
+            if(!data1) {
+                return true;
+            }
+            var t = {
+                r: Math.abs((data.r - data1.r) / 2),
+                g: Math.abs((data.g - data1.g) / 2),
+                b: Math.abs((data.b - data1.b) / 2),
+                a: Math.abs((data.a - data1.a) / 2),
+            }
+            // return (temp.r + temp.b + temp.g + temp.a) / 4 < deepVal;
+            // var roadArr = road.split(',');
+            // var pass = false;
+            // roadArr.forEach(function(item, i) {
+            //     if (!pass) {
+            //         pass = t[item] < deepVal;
+            //     }
+            // });
+            return t[type] < deepVal;
+            // return t.r < deepVal && t.g < deepVal && t.b < deepVal && t.a < deepVal;
+        }
+
+        function isPoint(data) {
+            return data && data.a >= 220 && !(data.r == data.g && data.r == data.b);
+        }
+
+        function debugPoints(data, type) {
+            // var str = '';
+            // var obj = document.createElement('div');
+            // obj.className = "item_box";
+            // for (var i = 0, l = data.length; i < l; i++) {
+            //     str += `<div class="item" style="left:${data[i].x}px; top:${data[i].y}px"></div>`;
+            // }
+            // obj.innerHTML = str;
+            // box.appendChild(obj);
+
+            data.forEach(function(item, i) {
+                // if (item[road] != 0) {
+                    loop(ctxr, item, 'r');
+                    loop(ctxg, item, 'g');
+                    loop(ctxb, item, 'b');
+                // }
+            })
+            function loop(ctx, item, type){
+                ctx.save();
+                ctx.fillStyle = `rgba(${item[type]},${item[type]},${item[type]},${item.a})`;
+                // console.log(item.x, item.y, ctx.fillStyle);
+                ctx.fillRect(item.x, item.y, 1, 1);
+                ctx.restore();
+            }
+        }
+
+        function makeSvg(data) {
+            var sPoint = [];
+
+            for (var i=0,l=data.length; i<l;i++){
+                if (data[i-1] && data[i].y == data[i-1].y + 1) {
+                    sPoint.push(`M${data[i].x} ${data[i].y} `);
+                } else if (i == 0) {
+                    sPoint.push(`M${data[i].x} ${data[i].y} `);
+                }else{
+                    sPoint.push(`L${data[i].x} ${data[i].y} `);
+                }
+            }
+
+            var str = `<svg><path d="${sPoint.join('')} Z" style="stroke:rgba(255,0,0,.3); stroke-width: 1;"></path></svg>`;
+            // console.log(str);
+
+            var obj = document.createElement('div');
+            obj.className = "item_box";
+            obj.innerHTML = str;
+            box.appendChild(obj);
+        }
+    </script>
+</body>
+
+</html>

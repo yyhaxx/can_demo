@@ -23,12 +23,12 @@ var sStyles = `
     list-style: none;
 }
 body{
-    background: #efefef; 
-    padding: 10px; 
+    background: #efefef;
+    padding: 10px;
 }
 .clearfix{
     clear: both;
-} 
+}
 .clearfix:after{
     content: ' ';
     clear: both;
@@ -39,6 +39,9 @@ body{
 .item{
     float: left;
     width: 200px;
+    margin-bottom: 20px;
+    border-left: 1px solid #333;
+    padding: 2px 10px;
 }
 </style>
 `;
@@ -55,13 +58,15 @@ var delFn = {
     s: null,
     rewrite: function() {
         this.q.url = this.q.url.replace(/\/$/, '');
+        this.q._file = this.q.url.replace(/\?.*/, '');
+        this.q._search = this.q.url.match(/\?[^#]+/);
     },
     doFn: function() {
         console.log('____>\n', this.q.url);
         if (this.q.url == '') {
             delFn.getDir();
         } else {
-            var sFile = path.resolve(dir, '.' + delFn.q.url);
+            var sFile = path.resolve(dir, '.' + delFn.q._file);
 
             var content = mime.lookup(sFile);
             var encodeString = null;
@@ -85,14 +90,14 @@ var delFn = {
                             } else {
                                 delFn.erFn();
                             }
-                        } 
+                        }
                     });
                 } else {
                     delFn.resFile(content, data);
                 }
-            });    
+            });
         }
-        
+
     },
     resFile: function(content, data) {
         delFn.s.writeHead(200, {
@@ -102,24 +107,24 @@ var delFn = {
         delFn.s.end();
     },
     getDir: function() {
-        var names = fs.readdirSync(path.resolve(dir, '.' + delFn.q.url));
-        var preUrl = delFn.q.url.replace(/(\/)[^\/]+$/, '$1');
+        var names = fs.readdirSync(path.resolve(dir, '.' + delFn.q._file));
+        var preUrl = delFn.q._file.replace(/(\/)[^\/]+$/, '$1');
         var list = `
             <li class="item"><a href="${delFn.q.url}">./</a></li>
             <li class="item"><a href="${preUrl}">../</a></li>
         `;
         names.forEach(function(item, i) {
-            console.log(path.resolve(dir, '.' + delFn.q.url, './' + item));
-            var stats = fs.statSync(path.resolve(dir, '.' + delFn.q.url, './' + item));
+            console.log(path.resolve(dir, '.' + delFn.q._file, './' + item));
+            var stats = fs.statSync(path.resolve(dir, '.' + delFn.q._file, './' + item));
 
             console.log(stats.isFile());
             if (stats && stats.isFile()) {
-                list += `<li class="item"><a href="${delFn.q.url}/${item}">${item}</a></li>`;
+                list += `<li class="item"><a href="${delFn.q._file}/${item}">${item}</a></li>`;
             } else {
-                list += `<li class="item"><a href="${delFn.q.url}/${item}">${item}/</a></li>`
+                list += `<li class="item"><a href="${delFn.q._file}/${item}">${item}/</a></li>`
             }
-        
-            
+
+
         });
         var fileDom = `
             ${sStyles}
