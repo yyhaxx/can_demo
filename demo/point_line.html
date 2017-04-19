@@ -30,23 +30,12 @@
         ctx.strokeStyle = 'rgba(255, 100, 0, .8)';
         ctx.lineWidth = 1;
         var points = [
-            // [100, 200, 10],
-            // [200, 100, 10],
-            // [300, 300, 10],
-            // [400, 350, 10],
-            // [500, 260, 10],
-            // [300, 480, 10],
-            // [900, 380, 10],
-            // [1000, 280, 10],
-            // [700, 500, 10],
-            // [800, 300, 10],
-            // [240, 553, 10],
-            // [600, 521, 10],
+            // {x:10， y:10, r: 3, sx: -1, sy: 2}
         ];
-        const lineRange = can.width / 5;
+        const lineRange = can.width / 6;
 
         function init() {
-            points = bronPoints(20, 10);
+            points = bronPoints(100, 3);
             window.tempPotins = [].concat(points);
             window.raf = requestAnimationFrame(loop);
         }
