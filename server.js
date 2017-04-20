@@ -1,12 +1,9 @@
 //引入文件
 var http = require('http'),
-    // mongodb = require('mongodb'),
-    sys = require('sys'),
-    // io = require('socket.io'),
     path = require('path'),
     mime = require('mime'),
     fs = require('fs');
-
+const port = 8900;
 //config
 var aIndex = ['index.html', 'default.html', 'index.htm', 'default.htm'],
     iInNum = 0,
@@ -46,13 +43,12 @@ body{
 </style>
 `;
 
-
 //全局变量
-var routerCfg = require('./router.config.js');
 var basePath = './';
 
 var dir = path.resolve(__dirname, basePath);
-console.log('-------------\n', dir, '\n-------------\n\n');
+console.log('-------------\n\ndir: ', dir, '\n\n-------------\n\n');
+
 var delFn = {
     q: null,
     s: null,
@@ -76,14 +72,11 @@ var delFn = {
             }
             fs.readFile(sFile, encodeString, function(err, data) {
                 if (err) {
-                    // console.log(err, '\n', sFile, '\n\n\n\n');
                     fs.stat(sFile, function(err, stats) {
                         if (err) {
-                            // console.log(err);
                             delFn.erFn();
                         } else {
-                            // console.log(stats);
-                            if(stats.isFile()) {
+                            if (stats.isFile()) {
                                 delFn.resFile(content, data);
                             } else if (stats.isDirectory()) {
                                 delFn.getDir();
@@ -123,8 +116,6 @@ var delFn = {
             } else {
                 list += `<li class="item"><a href="${delFn.q._file}/${item}">${item}/</a></li>`
             }
-
-
         });
         var fileDom = `
             ${sStyles}
@@ -156,10 +147,8 @@ var delFn = {
         var sIndex = '';
         delFn.q = req;
         delFn.s = res;
-        // console.log(req.url);
         if (!/^\/+$/.test(req.url)) {
             for (var i = 0, l = aIndex.length; i < l; i++) {
-                // console.log('^\\/+' + aIndex[i] + '$');
                 if (new RegExp('^\\/+' + aIndex[i] + '$').test(req.url)) {
                     sIndex = aIndex[i];
                     break;
@@ -170,18 +159,15 @@ var delFn = {
         }
         delFn.rewrite();
         delFn.doFn();
-    },
-    showThis: function() {
-        console.log('req=[[[' + this.req);
-        console.log('res=[[[' + this.res);
     }
 };
 
+var httpServer = http.createServer(delFn.serverFn).listen(port);
 
-var httpServer = http.createServer(delFn.serverFn).listen('8900');
-
-console.log('***************************** Welcome *****************************');
-console.log('');
-console.log('                       node服务器开启成功 ^_^');
-console.log('');
-console.log('***************************** GL & HF *****************************');
+console.log(`
+***************************** Welcome *****************************\n
+                       node服务器开启成功 ^_^\n
+                            端口${port}\n
+                    author: ${admin.email}\n
+***************************** GL & HF *****************************\n
+`);
