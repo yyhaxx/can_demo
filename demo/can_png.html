@@ -203,7 +203,8 @@
             })
             function loop(ctx, item, type){
                 ctx.save();
-                ctx.fillStyle = `rgba(${item[type]},${item[type]},${item[type]},${item.a})`;
+                var colorVal = 255 - item[type];
+                ctx.fillStyle = `rgba(${colorVal},${colorVal},${colorVal},${item.a})`;
                 // console.log(item.x, item.y, ctx.fillStyle);
                 ctx.fillRect(item.x, item.y, 1, 1);
                 ctx.restore();
