@@ -1,9 +1,15 @@
 //引入文件
-var http = require('http'),
+const
+    http = require('http'),
     path = require('path'),
     mime = require('mime'),
+    open = require("open"),
     fs = require('fs');
-const port = 8900;
+
+const
+    hostname = '127.0.0.1',
+    port = 8900;
+
 //config
 var aIndex = ['index.html', 'default.html', 'index.htm', 'default.htm'],
     iInNum = 0,
@@ -36,9 +42,9 @@ body{
 .item{
     float: left;
     width: 200px;
-    margin-bottom: 20px;
-    border-left: 1px solid #333;
-    padding: 2px 10px;
+    margin-bottom: 10px;
+    /* border-left: 1px solid #333; */
+    /* padding: 2px 10px; */
 }
 </style>
 `;
@@ -47,7 +53,11 @@ body{
 var basePath = './';
 
 var dir = path.resolve(__dirname, basePath);
-console.log('-------------\n\ndir: ', dir, '\n\n-------------\n\n');
+console.log(`
+-------------------------------------
+    dir: ${dir}
+-------------------------------------
+`);
 
 var delFn = {
     q: null,
@@ -58,7 +68,7 @@ var delFn = {
         this.q._search = this.q.url.match(/\?[^#]+/);
     },
     doFn: function() {
-        console.log('____>\n', this.q.url);
+        console.log('-->request: ', this.q.url, '\n');
         if (this.q.url == '') {
             delFn.getDir();
         } else {
@@ -90,7 +100,6 @@ var delFn = {
                 }
             });
         }
-
     },
     resFile: function(content, data) {
         delFn.s.writeHead(200, {
@@ -107,10 +116,7 @@ var delFn = {
             <li class="item"><a href="${preUrl}">../</a></li>
         `;
         names.forEach(function(item, i) {
-            console.log(path.resolve(dir, '.' + delFn.q._file, './' + item));
             var stats = fs.statSync(path.resolve(dir, '.' + delFn.q._file, './' + item));
-
-            console.log(stats.isFile());
             if (stats && stats.isFile()) {
                 list += `<li class="item"><a href="${delFn.q._file}/${item}">${item}</a></li>`;
             } else {
@@ -162,12 +168,13 @@ var delFn = {
     }
 };
 
-var httpServer = http.createServer(delFn.serverFn).listen(port);
+var httpServer = http.createServer(delFn.serverFn).listen(port, hostname);
+open(`http://${hostname}:${port}`);
 
 console.log(`
 ***************************** Welcome *****************************\n
-                       node服务器开启成功 ^_^\n
-                            端口${port}\n
+                       node服务器开启成功 ^_^
+                            端口${port}
                     author: ${admin.email}\n
-***************************** GL & HF *****************************\n
+***************************** GL & HF *****************************
 `);
