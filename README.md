@@ -1,12 +1,12 @@
 # can_demo
-##server.js
+## server.js
 简单地node服务，
 ```
 host: 127.0.0.1 / localhost
 port: 8900
 默认服务器目录： ./
 ```
-####需要依赖“mime”、“open”包，详见packge.json
+#### 需要依赖“mime”、“open”包，详见packge.json
 使用前先
 ```
 npm install
