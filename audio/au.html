@@ -119,9 +119,13 @@
                     console.log(analyser);
 
                     window.aua = new Uint8Array(analyser.frequencyBinCount);
+                    if (window.aua.length > 1024) {
+                        analyser.fftsize =  1024;
+                    }
                     analyser.getByteFrequencyData(window.aua);
                     canDraw(analyser);
                     console.log(window.aua);
+
                 })
             }
             fr.readAsArrayBuffer(aBuffer);
