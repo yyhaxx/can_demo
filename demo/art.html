@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <div class="wrapper"></div>
+    <script src="./art.js" charset="utf-8"></script>
+    <script id="tpl-user" type="text/html">
+        {{if data.c > data.d}}
+        {{data.c}}--{{data.d}}
+        <br>
+        {{data.time}}
+        <br>
+        {{G.parseInt(data.num)}}
+        {{else if data.name == 'aui'}}
+        vvvvvvv  {{data.time}}
+        {{else}}
+        ---------
+        {{/if}}
+    </script>
+    <script type="text/javascript">
+        var html = template('tpl-user', {
+            data: {
+                name: 'aui',
+                a: 8,
+                b: 1 + 1,
+                c: 0.1 + 0.2,
+                d: 0.3,
+                list: [{
+                    index: 1
+                }],
+                num: 1234567,
+                time: Date.now(),
+            },
+            G: window
+        });
+
+        document.querySelector('.wrapper').innerHTML = html;
+    </script>
+</body>
+
+</html>

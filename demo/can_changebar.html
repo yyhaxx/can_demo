@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="renderer" content="webkit,ie-comp">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge, chrome=1">
+    <title>Document</title>
+    <style>
+        html,
+        body {
+            height: 100%;
+            background: #333;
+            padding: 0;
+            margin: 0;
+        }
+
+        .wrapper {
+            margin: auto;
+            height: 100%;
+            position: relative;
+            /* box-sizing: border-box; */
+        }
+
+        #main_content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-image: url('./img/alpha.png');
+            width: 500px;
+            height: 500px;
+        }
+
+        .txt {
+            text-align: center;
+            color: #fff;
+            font-size: 18px;
+        }
+
+        .border-box{
+            border: 1px solid #333;
+            position: absolute;
+            box-sizing: border-box;
+        }
+        .border-box em {
+            position: absolute;
+            top: 0; left: 0;
+            width: 4px;
+            height: 4px;
+            transform: translate(-50%, -50%);
+            border: 1px solid #333;
+        }
+        em:hover{
+
+        }
+        .border-box .left{
+            left: 0%;
+            margin-left: -1px;
+        }
+        .border-box .top {
+            margin-top: -1px;
+        }
+        .border-box .center{
+            left: 50%;
+        }
+        .border-box .right{
+            left: 100%;
+            margin-left: 1px;
+        }
+        .border-box .middle{
+            top: 50%;
+        }
+        .border-box .bottom{
+            top: 100%;
+            margin-top: 1px;
+        }
+        .top.left:hover, .bottom.right:hover{
+            cursor: nwse-resize;
+        }
+        .top.right:hover, .bottom.left:hover{
+            cursor: nesw-resize;
+        }
+        .middle.left:hover, .middle.right:hover{
+            cursor: ew-resize;
+        }
+        .top.center:hover, .bottom.center:hover{
+            cursor: ns-resize;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <div id="main_content" width=500 height=500>
+            <canvas class="candom" width="500" height="500"></canvas>
+            <div class="border-box">
+                <em class="top left"></em>
+                <em class="top center"></em>
+                <em class="top right"></em>
+                <em class="middle left"></em>
+                <em class="middle center"></em>
+                <em class="middle right"></em>
+                <em class="bottom left"></em>
+                <em class="bottom center"></em>
+                <em class="bottom right"></em>
+            </div>
+        </div>
+        <p class="txt"></p>
+
+    </div>
+    <script>
+        const borderWidth = 1;
+        let txtDom = document.querySelector('.txt');
+        let boxDom = document.querySelector('.border-box');
+        let can = document.querySelector('.candom');
+        let ctx = can.getContext('2d');
+
+        ctx.fillStyle = '#09f';
+        ctx.save();
+        // ctx.rotate(30 * Math.PI / 180);
+        // ctx.fillRect(100, 100, 200, 200);
+
+        ctx.moveTo(250, 250);
+        ctx.arc(250,250, 200, 0, 2 * Math.PI);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+        let pos = getCanvasBoundary(ctx);
+
+        console.log(pos);
+        txtDom.innerText = `canvas图像边界: l:${pos.x[0]}, r:${pos.x[1]}, t:${pos.y[0]}, b:${pos.y[1]}`;
+        boxDom.style = `
+        left: ${pos.x[0]}px;
+        top: ${pos.y[0]}px;
+        width: ${pos.x[1] - pos.x[0] + 1}px;
+        height: ${pos.y[1] - pos.y[0] + 1}px;
+        border-width: ${borderWidth}px;`
+
+        function getCanvasBoundary(ctx) {
+            let imgData = ctx.getImageData(0, 0, can.width, can.height);
+            let cData = imgData.data || [];
+            let pos = {
+                x: [],
+                y: []
+            };
+            for (let i = 0, l = cData.length; i < l; i += 4) {
+                if (cData[i + 3] != 0) {
+                    let index = i / 4;
+                    let temp = {
+                        x: index % can.width,
+                        y: Math.floor(index / can.height)
+                    };
+                    if (pos.x.length == 0) {
+                        pos.x[0] = temp.x;
+                        pos.x[1] = temp.x;
+                        pos.y[0] = temp.y;
+                        pos.y[1] = temp.y;
+                    } else {
+                        if (temp.x < pos.x[0]) {
+                            pos.x[0] = temp.x;
+                        }
+                        if (temp.x > pos.x[1]) {
+                            pos.x[1] = temp.x;
+                        }
+                        if (temp.y < pos.y[0]) {
+                            pos.y[0] = temp.y;
+                        }
+                        if (temp.y > pos.y[1]) {
+                            pos.y[1] = temp.y;
+                        }
+                    }
+                }
+            }
+            return pos;
+        }
+    </script>
+</body>
+
+</html>

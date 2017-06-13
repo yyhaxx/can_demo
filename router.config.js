@@ -4,3 +4,4 @@ module.exports = {
     '/index': '/index.html',
     '/index.html': '/index.html'
 };
+测试

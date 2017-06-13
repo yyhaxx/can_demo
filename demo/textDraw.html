@@ -71,26 +71,53 @@
             "242": "&",
             "254": "%"
         }
-        var oImg = document.getElementById('j_img');
+
         var can = document.getElementById('can');
         var ctx = can.getContext('2d');
         var oDiv = document.getElementById('div');
-        var index = 1;
+        var index = 0;
         var flag = true;
-        var timmer = setInterval(function() {
-            if (flag && index == 14 || (!flag && index == 1)) {
-                flag = !flag;
-            }
-            oImg.src = '../img/' + index + '.png';
-            if (!flag) {
-                index--;
-            } else {
-                index++;
-            }
-        }, 100);
 
-        oImg.onload = function() {
+        var imgList = [];
 
+        for (var i=0;i<4;i++){
+            loadImg(`../img/${i+1}.png`);
+        }
+
+        function loadImg(str) {
+            console.log(str);
+            let oImg = document.createElement('img');
+            oImg.src = str;
+            oImg.width = 50;
+            oImg.height = 50;
+            oImg.onload = function() {
+                imgList.push(oImg);
+            }
+            document.body.appendChild(oImg);
+            // oImg.load();
+        }
+        console.log(imgList[index]);
+        var raf = window.requestAnimationFrame(loop);
+        var step = 3;
+        function loop() {
+            // if ()
+            if (step == 3) {
+                if (index == 0) {
+                    flag = true;
+                    index ++;
+                } else if (index == 13) {
+                    index--;
+                }
+            }
+            step = step-- ? step : 3;
+            var raf = window.requestAnimationFrame(loop);
+        }
+
+
+
+
+        function go(oImg) {
+            console.log(oImg);
             ctx.drawImage(oImg, 0, 0, oImg.width, oImg.height, 0, 0, 80, 35 / (oImg.width / oImg.height));
             var imgData = ctx.getImageData(0, 0, 80, 35 / (oImg.width / oImg.height));
             var pos = [];

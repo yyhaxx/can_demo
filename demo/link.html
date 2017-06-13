@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        canvas {
+            display: block;
+            background: #efefef;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="can" width="400" height="300"></canvas>
+    <script>
+        var can = document.querySelector('#can');
+        var ctx = can.getContext('2d');
+
+
+        var padding = 10;
+        var lineHeight = 24;
+        var margin = 10;
+        var fontSize = 12;
+
+
+
+        can.width = window.innerWidth;
+        can.height = window.innerHeight;
+
+        ctx.strokeStyle = 'rgba(200, 200, 0, .8)';
+        ctx.fillStyle = 'rgba(0, 100, 200, .3)';
+        ctx.translate(0.5, 0.5);
+        ctx.lineWidth = 1;
+        ctx.font = fontSize + ' monospace';
+        ctx.textAlign = "start";
+        ctx.textBaseline = "top";
+        ctx.translate(20, 20);
+
+        var arrData = {
+            index: {
+                page: {
+                    data: {
+                        link: 1
+                    }
+                },
+                '还是说': 1,
+                test: {
+                    link: 1
+                },
+                cc: 1,
+            },
+            link: {
+                haha: {
+                    xx: {
+                        cc: 1,
+                    }
+                },
+            },
+            pp: {
+                kk: 1,
+                cc: 1,
+                xx: 1,
+                index: 1,
+                '还是说': 2
+            }
+        };
+
+        var rectArrPos = [];
+
+        function forData(data) {
+            for (let k in data) {
+                if (data[k] instanceof Object) {
+                    draw(k);
+                    forData(data[k]);
+                } else if (data[k] === 1) {
+                    draw(k);
+                }
+            }
+        }
+
+        function draw(text) {
+            let textWidth = ctx.measureText(text).width;
+            ctx.save();
+            // var pos = {
+            //     x: rectArrPos.length * 100 % 1000 + 10,
+            //     y: Math.floor((rectArrPos.length * 100) / 1000) * 40 + 10
+            // }
+            var last = rectArrPos.slice(-1)[0] || {
+                x: 0,
+                y: 0,
+                x1: 0,
+                y1: 0
+            };
+            var pos = {
+                x: (last.x1 + margin) % 400,
+                x1: (last.x1 + margin) % 400 + textWidth,
+                y: last.y + Math.floor((last.x1 + margin) / 400) * (fontSize + padding * 2) + margin,
+                y1: last.y + Math.floor((last.x1 + 20) / 400) * (fontSize + padding * 2) + (fontSize + padding * 2)+ margin,
+            }
+            console.log(pos);
+            rectArrPos.push(pos);
+            ctx.fillRect(pos.x, pos.y, textWidth + padding * 2, fontSize + padding * 2);
+            ctx.save();
+            ctx.fillStyle = '#000';
+            ctx.fillText(text, pos.x + padding, pos.y + padding);
+            ctx.restore();
+        }
+
+        forData(arrData);
+    </script>
+</body>
+
+</html>

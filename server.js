@@ -1,14 +1,17 @@
 //引入文件
 const
+    os = require('os'),
+    fs = require('fs'),
+    net = require('net'),
+    url = require('url'),
     http = require('http'),
     path = require('path'),
     mime = require('mime'),
-    open = require("open"),
-    fs = require('fs');
+    open = require('open');
 
-const
-    hostname = '127.0.0.1',
-    port = 8900;
+const _netWorkInfo = os.networkInterfaces(),
+    hostname = '127.0.0.1' || _netWorkInfo.en0[0].address || _netWorkInfo.en0[0].address,
+    port = 8888;
 
 //config
 var aIndex = ['index.html', 'default.html', 'index.htm', 'default.htm'],
@@ -17,6 +20,13 @@ var aIndex = ['index.html', 'default.html', 'index.htm', 'default.htm'],
         email: 'emial:win7killer@163.com',
         tel: ''
     };
+
+function getClientIp(req) {
+    return req.headers['x-forwarded-for'] ||
+        req.connection.remoteAddress ||
+        req.socket.remoteAddress ||
+        req.connection.socket.remoteAddress;
+};
 
 var sStyles = `
 <style>
@@ -50,9 +60,9 @@ body{
 `;
 
 //全局变量
-var basePath = './';
+var basePath = './www';
 
-var dir = path.resolve(__dirname, basePath);
+var dir = path.resolve(__dirname);
 console.log(`
 -------------------------------------
     dir: ${dir}
@@ -66,9 +76,11 @@ var delFn = {
         this.q.url = this.q.url.replace(/\/$/, '');
         this.q._file = this.q.url.replace(/\?.*/, '');
         this.q._search = this.q.url.match(/\?[^#]+/);
+        console.log('-->request: ', this.q.url, '\n');
+        console.log('ip:  ', getClientIp(this.q), '\n===============================');
     },
     doFn: function() {
-        console.log('-->request: ', this.q.url, '\n');
+        console.log(this.q.method);
         if (this.q.url == '') {
             delFn.getDir();
         } else {
@@ -76,7 +88,7 @@ var delFn = {
 
             var content = mime.lookup(sFile);
             var encodeString = null;
-            if (/(text|javascript|css|html|xml|svg|markdown)/i.test(content)) {
+            if (/(text|javascript|css|html|xml|svg|markdown|json)/i.test(content)) {
                 encodeString = 'utf-8';
                 content = content + ';charset="utf-8"';
             }
@@ -168,13 +180,26 @@ var delFn = {
     }
 };
 
-var httpServer = http.createServer(delFn.serverFn).listen(port, hostname);
-open(`http://${hostname}:${port}`);
+var httpServer = http.createServer(delFn.serverFn).listen(port, function() {
 
-console.log(`
-***************************** Welcome *****************************\n
-                       node服务器开启成功 ^_^
-                            端口${port}
-                    author: ${admin.email}\n
-***************************** GL & HF *****************************
-`);
+    console.log(`
+    ***************************** Welcome *****************************\n
+                           node服务器开启成功 ^_^
+                                端口${port}
+                        author: ${admin.email}\n
+    ***************************** GL & HF *****************************
+    `);
+    open(`http://${hostname}:${port}`);
+});
+httpServer.on('connect', (req, cltSocket, head) => {
+  // 连接到一个来源服务器
+  var srvUrl = url.parse(`http://${req.url}`);
+  var srvSocket = net.connect(srvUrl.port, srvUrl.hostname, () => {
+    cltSocket.write('HTTP/1.1 200 连接已建立\r\n' +
+                    '委托代理: Node.js-代理\r\n' +
+                    '\r\n');
+    srvSocket.write(head);
+    srvSocket.pipe(cltSocket);
+    cltSocket.pipe(srvSocket);
+  });
+});
